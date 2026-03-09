@@ -1,0 +1,1808 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Иван Белихин — Графический дизайнер</title>
+  <style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --black: #0a0a0a;
+      --white: #f5f5f3;
+      --gray: #7a7a7a;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--black);
+      color: var(--white);
+      font-family: 'Inter', sans-serif;
+      font-weight: 300;
+      overflow-x: hidden;
+      cursor: none;
+    }
+    a, button, .card, input, textarea, select, label, [role="button"] {
+      cursor: none !important;
+    }
+
+    /* CURSOR */
+    .cursor {
+      position: fixed;
+      width: 8px; height: 8px;
+      background: var(--white);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 999999;
+      transform: translate(-50%, -50%);
+      transition: width 0.3s ease, height 0.3s ease;
+    }
+    .cursor-ring {
+      position: fixed;
+      width: 38px; height: 38px;
+      border: 1px solid rgba(245,245,243,0.35);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 999998;
+      transform: translate(-50%, -50%);
+      transition: width 0.4s ease, height 0.4s ease, border-color 0.4s ease;
+    }
+    .cursor.grow { width: 18px; height: 18px; }
+    .cursor-ring.grow { width: 64px; height: 64px; border-color: rgba(245,245,243,0.15); }
+
+    /* NOISE */
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+      background-size: 256px;
+      opacity: 0.4;
+      z-index: 9990;
+      pointer-events: none;
+    }
+
+    /* NAV */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 32px 56px;
+      z-index: 10000;
+    }
+    nav::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(to bottom, rgba(10,10,10,0.95) 0%, transparent 100%);
+      z-index: -1; pointer-events: none;
+      transition: opacity 0.4s ease;
+    }
+    nav.menu-open::before { opacity: 0; }
+
+    .logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 1rem; letter-spacing: 0.05em;
+      color: var(--white); text-decoration: none;
+      opacity: 0; animation: fadeDown 0.9s 0.2s ease forwards;
+      position: relative; z-index: 10002;
+      transition: opacity 0.3s ease;
+    }
+
+    /* Десктоп ссылки — скрываем на мобиле */
+    .nav-links {
+      display: flex; gap: 44px; list-style: none;
+      opacity: 0; animation: fadeDown 0.9s 0.4s ease forwards;
+    }
+    .nav-links a {
+      color: var(--gray); text-decoration: none;
+      font-size: 0.72rem; letter-spacing: 0.16em; text-transform: uppercase;
+      transition: color 0.3s;
+    }
+    .nav-links a:hover { color: var(--white); }
+
+    /* ── HAMBURGER ── */
+    .burger {
+      display: none;
+      flex-direction: column; justify-content: center; align-items: flex-end;
+      gap: 6px; width: 36px; height: 36px;
+      background: none; border: none; padding: 0;
+      position: relative; z-index: 10002;
+      cursor: none !important;
+    }
+    .burger-line {
+      display: block; height: 1px; background: var(--white);
+      transform-origin: right center;
+      transition: width 0.4s cubic-bezier(0.16,1,0.3,1),
+                  transform 0.4s cubic-bezier(0.16,1,0.3,1),
+                  opacity 0.3s ease;
+    }
+    .burger-line:nth-child(1) { width: 28px; }
+    .burger-line:nth-child(2) { width: 20px; }
+    .burger-line:nth-child(3) { width: 28px; }
+
+    /* Бургер открыт — крестик */
+    .burger.open .burger-line:nth-child(1) {
+      width: 28px;
+      transform: translateY(7px) rotate(-45deg);
+    }
+    .burger.open .burger-line:nth-child(2) {
+      opacity: 0; width: 0;
+    }
+    .burger.open .burger-line:nth-child(3) {
+      width: 28px;
+      transform: translateY(-7px) rotate(45deg);
+    }
+
+    /* ── FULLSCREEN MENU ── */
+    .fullmenu {
+      position: fixed; inset: 0;
+      background: var(--black);
+      z-index: 10001;
+      display: flex; flex-direction: column;
+      justify-content: center; padding: 0 56px;
+      pointer-events: none;
+      clip-path: inset(0 0 100% 0);
+      transition: clip-path 0.8s cubic-bezier(0.76, 0, 0.24, 1);
+    }
+    .fullmenu.open {
+      pointer-events: all;
+      clip-path: inset(0 0 0% 0);
+    }
+
+    /* Декоративная линия */
+    .fullmenu-line {
+      position: absolute; top: 0; left: 56px; right: 56px;
+      height: 1px; background: rgba(245,245,243,0.08);
+      transform: scaleX(0); transform-origin: left;
+      transition: transform 0.6s 0.5s cubic-bezier(0.16,1,0.3,1);
+    }
+    .fullmenu.open .fullmenu-line { transform: scaleX(1); }
+
+    /* Пункты меню */
+    .fullmenu-nav { list-style: none; }
+    .fullmenu-item {
+      overflow: hidden;
+      border-bottom: 1px solid rgba(245,245,243,0.06);
+    }
+    .fullmenu-item:first-child { border-top: 1px solid rgba(245,245,243,0.06); }
+
+    .fullmenu-link {
+      display: flex; align-items: baseline;
+      justify-content: space-between;
+      padding: 28px 0;
+      text-decoration: none;
+      transform: translateY(110%);
+      transition: transform 0.7s cubic-bezier(0.16,1,0.3,1);
+    }
+    .fullmenu.open .fullmenu-link { transform: translateY(0); }
+    .fullmenu-item:nth-child(1) .fullmenu-link { transition-delay: 0.15s; }
+    .fullmenu-item:nth-child(2) .fullmenu-link { transition-delay: 0.22s; }
+    .fullmenu-item:nth-child(3) .fullmenu-link { transition-delay: 0.29s; }
+    .fullmenu-item:nth-child(4) .fullmenu-link { transition-delay: 0.36s; }
+
+    .fullmenu-num {
+      font-size: 0.62rem; letter-spacing: 0.16em;
+      color: rgba(245,245,243,0.2); align-self: center;
+    }
+    .fullmenu-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(36px, 8vw, 96px);
+      font-weight: 400; letter-spacing: -0.02em;
+      color: var(--white);
+      transition: color 0.3s, transform 0.4s cubic-bezier(0.16,1,0.3,1);
+      display: inline-block;
+    }
+    .fullmenu-link:hover .fullmenu-title {
+      color: rgba(245,245,243,0.35);
+      transform: translateX(12px);
+    }
+    .fullmenu-link:hover .fullmenu-num { color: var(--white); }
+
+    /* Кнопка закрыть внутри меню */
+    .fullmenu-close {
+      position: absolute; top: 32px; right: 56px;
+      background: none; border: 1px solid rgba(245,245,243,0.15);
+      color: var(--white); border-radius: 50px;
+      padding: 10px 22px;
+      font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase;
+      display: flex; align-items: center; gap: 10px;
+      cursor: none !important;
+      opacity: 0; transform: translateY(-8px);
+      transition: opacity 0.4s 0.4s ease, transform 0.4s 0.4s ease,
+                  background 0.3s ease, border-color 0.3s ease;
+    }
+    .fullmenu.open .fullmenu-close { opacity: 1; transform: translateY(0); }
+    .fullmenu-close:hover { background: rgba(245,245,243,0.06); border-color: rgba(245,245,243,0.3); }
+    .fullmenu-close-x {
+      display: flex; flex-direction: column; gap: 0; width: 14px; height: 14px;
+      position: relative;
+    }
+    .fullmenu-close-x::before,
+    .fullmenu-close-x::after {
+      content: ''; position: absolute; top: 50%; left: 0;
+      width: 14px; height: 1px; background: var(--white);
+    }
+    .fullmenu-close-x::before { transform: rotate(45deg); }
+    .fullmenu-close-x::after  { transform: rotate(-45deg); }
+
+    /* Футер меню */
+    .fullmenu-footer {
+      position: absolute; bottom: 40px; left: 56px; right: 56px;
+      display: flex; justify-content: space-between; align-items: center;
+      opacity: 0;
+      transition: opacity 0.5s 0.45s ease;
+      border-top: 1px solid rgba(245,245,243,0.06);
+      padding-top: 24px;
+    }
+    .fullmenu.open .fullmenu-footer { opacity: 1; }
+    .fullmenu-footer-text {
+      font-size: 0.62rem; letter-spacing: 0.16em; text-transform: uppercase;
+      color: rgba(245,245,243,0.18);
+    }
+
+    /* На мобиле — показываем бургер, прячем десктоп-ссылки */
+    @media (max-width: 860px) {
+      .nav-links { display: none; }
+      .burger { display: flex; }
+      nav { padding: 24px 28px; }
+      .fullmenu { padding: 0 28px; }
+      .fullmenu-line { left: 28px; right: 28px; }
+      .fullmenu-footer { left: 28px; right: 28px; }
+    }
+
+    /* HERO */
+    #hero {
+      height: 100vh;
+      display: flex; flex-direction: column; justify-content: flex-end;
+      padding: 0 56px 90px;
+      position: relative; overflow: hidden;
+    }
+    .hero-bg {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none; user-select: none;
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(90px, 20vw, 280px);
+      font-weight: 700;
+      color: transparent;
+      -webkit-text-stroke: 1px rgba(245,245,243,0.035);
+      letter-spacing: -0.04em;
+      white-space: nowrap;
+    }
+    .hero-label {
+      font-size: 0.7rem; letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--gray); margin-bottom: 24px;
+      opacity: 0; animation: fadeUp 1s 0.5s ease forwards;
+    }
+    .hero-name {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(48px, 8vw, 110px);
+      font-weight: 400; line-height: 0.95; letter-spacing: -0.025em;
+      opacity: 0; animation: fadeUp 1s 0.7s ease forwards;
+    }
+    .hero-name em { font-style: italic; color: var(--gray); }
+    .hero-desc {
+      margin-top: 32px; max-width: 360px;
+      font-size: 0.88rem; line-height: 1.85; color: var(--gray);
+      opacity: 0; animation: fadeUp 1s 0.9s ease forwards;
+    }
+    .hero-scroll-hint {
+      position: absolute; bottom: 44px; right: 56px;
+      display: flex; align-items: center; gap: 14px;
+      font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gray);
+      opacity: 0;
+      transform: translateY(16px);
+      transition: opacity 0.9s ease, transform 0.9s cubic-bezier(0.16,1,0.3,1);
+    }
+    .hero-scroll-hint.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .scroll-line {
+      width: 48px; height: 1px; background: var(--gray);
+      transform: scaleX(0); transform-origin: left;
+      transition: transform 1s 0.25s cubic-bezier(0.16,1,0.3,1);
+    }
+    .hero-scroll-hint.visible .scroll-line {
+      transform: scaleX(1);
+    }
+    /* Пульсирующая стрелка вниз */
+    .scroll-arrow {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 3px; opacity: 0;
+      transition: opacity 0.6s 0.5s ease;
+    }
+    .hero-scroll-hint.visible .scroll-arrow { opacity: 1; }
+    .scroll-arrow span {
+      display: block; width: 5px; height: 5px;
+      border-right: 1px solid var(--gray);
+      border-bottom: 1px solid var(--gray);
+      transform: rotate(45deg);
+      animation: scrollArrow 1.6s ease infinite;
+    }
+    .scroll-arrow span:nth-child(2) { animation-delay: 0.2s; }
+    .scroll-arrow span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes scrollArrow {
+      0%   { opacity: 0; transform: rotate(45deg) translate(-3px, -3px); }
+      50%  { opacity: 1; }
+      100% { opacity: 0; transform: rotate(45deg) translate(3px, 3px); }
+    }
+
+    /* HERO PHOTO */
+    .hero-photo-wrap {
+      position: absolute;
+      top: 0; right: 0;
+      width: 38vw; height: 100%;
+      overflow: hidden;
+      pointer-events: none;
+    }
+    .hero-photo-wrap::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(to right, var(--black) 0%, transparent 30%),
+                  linear-gradient(to top, var(--black) 0%, transparent 25%);
+    }
+    .hero-photo {
+      width: 100%; height: 100%;
+      object-fit: cover; object-position: center top;
+      filter: grayscale(100%) contrast(1.1) brightness(0.75);
+      opacity: 0;
+      animation: fadeUp 1.4s 0.6s ease forwards;
+    }
+
+    /* MARQUEE */
+    .marquee-wrap {
+      border-top: 1px solid rgba(255,255,255,0.06);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      padding: 16px 0; overflow: hidden; white-space: nowrap;
+    }
+    .marquee-track {
+      display: inline-flex; gap: 56px;
+      animation: marquee 20s linear infinite;
+    }
+    .marquee-item {
+      font-size: 0.68rem; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--gray); flex-shrink: 0;
+    }
+    .marquee-sep { color: rgba(255,255,255,0.18); }
+
+    /* SECTIONS */
+    .section { padding: 130px 56px; }
+    .s-label {
+      display: flex; align-items: center; gap: 16px;
+      font-size: 0.66rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--gray);
+      margin-bottom: 72px;
+    }
+    .s-label::before { content: ''; width: 28px; height: 1px; background: var(--gray); flex-shrink: 0; }
+
+    /* WORKS */
+    #works { padding-top: 130px; }
+    .works-head {
+      display: flex; justify-content: space-between; align-items: flex-end;
+      margin-bottom: 52px;
+    }
+    .works-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(30px, 4vw, 56px);
+      font-weight: 400; letter-spacing: -0.02em; line-height: 1.1;
+    }
+    .works-title em { font-style: italic; color: var(--gray); }
+    .works-count { font-size: 0.7rem; color: var(--gray); letter-spacing: 0.1em; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 16px;
+    }
+    .card {
+      position: relative; overflow: hidden;
+      background: #111;
+      opacity: 0; transform: translateY(50px);
+      transition: opacity 0.9s ease, transform 0.9s ease;
+    }
+    .card.visible { opacity: 1; transform: translateY(0); }
+
+    /* dope parfume — квадрат, широкая колонка */
+    .card:nth-child(1) { grid-column: span 6; aspect-ratio: 1/1; transition-delay: 0s; }
+    /* афиша — квадрат, чуть уже */
+    .card:nth-child(2) { grid-column: span 6; aspect-ratio: 1/1; transition-delay: 0.1s; }
+    /* карточка 2 — вертикальная 3:4 */
+    .card:nth-child(3) { grid-column: span 4; aspect-ratio: 3/4; transition-delay: 0.2s; }
+    /* день вечной молодости — широкая панорама */
+    .card:nth-child(4) { grid-column: span 8; aspect-ratio: 5/2; transition-delay: 0.1s; }
+    /* карточка товара — вертикальная 3:4 */
+    .card:nth-child(5) { grid-column: span 4; aspect-ratio: 3/4; transition-delay: 0.15s; }
+
+    .card img {
+      width: 100%; height: 100%; object-fit: cover; display: block;
+      filter: grayscale(100%) contrast(1.08);
+      transition: transform 0.9s cubic-bezier(0.25,0.46,0.45,0.94), filter 0.6s ease;
+    }
+    .card:hover img { transform: scale(1.05); filter: grayscale(50%) contrast(1.12); }
+    .card-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 55%);
+      opacity: 0; transition: opacity 0.5s ease;
+    }
+    .card:hover .card-overlay { opacity: 1; }
+    .card-info {
+      position: absolute; bottom: 0; left: 0; right: 0; padding: 30px;
+      opacity: 0; transform: translateY(12px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+    .card:hover .card-info { opacity: 1; transform: translateY(0); }
+    .card-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem; font-weight: 400; margin-bottom: 6px;
+    }
+    .card-cat {
+      font-size: 0.65rem; letter-spacing: 0.16em;
+      text-transform: uppercase; color: rgba(245,245,243,0.5);
+    }
+
+    /* ABOUT */
+    #about {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 100px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .about-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(28px, 3.5vw, 50px);
+      font-weight: 400; letter-spacing: -0.02em; line-height: 1.15;
+      margin-bottom: 36px;
+    }
+    .about-title em { font-style: italic; color: var(--gray); }
+    .about-text { font-size: 0.88rem; line-height: 1.9; color: var(--gray); margin-bottom: 20px; }
+    .about-right { padding-top: 100px; }
+    .skill-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 20px 0; border-bottom: 1px solid rgba(255,255,255,0.06);
+      opacity: 0; transform: translateX(28px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .skill-row.visible { opacity: 1; transform: translateX(0); }
+    .skill-name { font-size: 0.88rem; color: var(--white); }
+    .skill-badge {
+      font-size: 0.64rem; letter-spacing: 0.1em; color: var(--gray);
+      border: 1px solid rgba(255,255,255,0.1); padding: 5px 12px; border-radius: 20px;
+    }
+
+    /* PROCESS */
+    #process { border-top: 1px solid rgba(255,255,255,0.06); }
+    .process-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px;
+      background: rgba(255,255,255,0.06); margin-top: 72px;
+    }
+    .step {
+      background: var(--black); padding: 44px 36px;
+      opacity: 0; transform: translateY(30px);
+      transition: opacity 0.7s ease, transform 0.7s ease, background 0.3s;
+    }
+    .step:hover { background: #111; }
+    .step.visible { opacity: 1; transform: translateY(0); }
+    .step-num {
+      font-family: 'Playfair Display', serif; font-size: 3.8rem;
+      color: rgba(255,255,255,0.05); line-height: 1; font-weight: 700; margin-bottom: 28px;
+    }
+    .step-title { font-size: 0.82rem; letter-spacing: 0.04em; color: var(--white); margin-bottom: 14px; }
+    .step-text { font-size: 0.78rem; line-height: 1.8; color: var(--gray); }
+
+    /* TOOLS */
+    #tools {
+      border-top: 1px solid rgba(255,255,255,0.06);
+      display: flex; gap: 100px; align-items: flex-start;
+    }
+    .tools-heading {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(26px, 3vw, 44px);
+      font-weight: 400; letter-spacing: -0.02em; line-height: 1.2;
+      flex: 0 0 300px;
+    }
+    .tools-heading em { font-style: italic; color: var(--gray); }
+    .tools-list { flex: 1; padding-top: 8px; }
+    .tool-row {
+      display: flex; align-items: center; padding: 22px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      opacity: 0; transform: translateX(-20px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .tool-row.visible { opacity: 1; transform: translateX(0); }
+    .tool-name { font-size: 0.88rem; color: var(--white); width: 160px; flex-shrink: 0; }
+    .tool-track {
+      flex: 1; height: 1px; background: rgba(255,255,255,0.08);
+      margin: 0 28px; position: relative; overflow: hidden;
+    }
+    .tool-fill {
+      position: absolute; top: 0; left: 0; height: 100%;
+      background: linear-gradient(to right, rgba(245,245,243,0.3), var(--white));
+      width: 0; transition: width 1.4s cubic-bezier(0.25,0.46,0.45,0.94) 0.3s;
+    }
+    .tool-pct { font-size: 0.72rem; color: var(--gray); min-width: 36px; text-align: right; }
+
+    /* CONTACT */
+    #contact {
+      border-top: 1px solid rgba(255,255,255,0.06);
+      min-height: 80vh; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; text-align: center;
+    }
+    .contact-over {
+      font-size: 0.68rem; letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--gray); margin-bottom: 36px;
+      opacity: 0; transform: translateY(20px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .contact-over.visible { opacity: 1; transform: translateY(0); }
+    .contact-big {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(44px, 9vw, 130px);
+      font-weight: 400; letter-spacing: -0.03em; line-height: 0.95;
+      opacity: 0; transform: translateY(30px);
+      transition: opacity 0.8s 0.1s ease, transform 0.8s 0.1s ease;
+    }
+    .contact-big em { font-style: italic; color: var(--gray); }
+    .contact-big.visible { opacity: 1; transform: translateY(0); }
+    .contact-link {
+      display: inline-block; margin-top: 40px;
+      font-size: 0.82rem; letter-spacing: 0.1em; color: var(--gray);
+      text-decoration: none; border-bottom: 1px solid rgba(255,255,255,0.15); padding-bottom: 4px;
+      transition: color 0.3s, border-color 0.3s;
+      opacity: 0; transform: translateY(20px);
+      transition: opacity 0.7s 0.25s ease, transform 0.7s 0.25s ease, color 0.3s, border-color 0.3s;
+    }
+    .contact-link:hover { color: var(--white); border-color: var(--white); }
+    .contact-link.visible { opacity: 1; transform: translateY(0); }
+    .socials {
+      display: flex; gap: 36px; margin-top: 52px;
+      opacity: 0; transform: translateY(20px);
+      transition: opacity 0.7s 0.4s ease, transform 0.7s 0.4s ease;
+    }
+    .socials.visible { opacity: 1; transform: translateY(0); }
+    .socials a {
+      font-size: 0.68rem; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--gray); text-decoration: none; transition: color 0.3s;
+    }
+    .socials a:hover { color: var(--white); }
+
+    /* FOOTER */
+    footer {
+      padding: 28px 56px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 0.68rem; color: rgba(255,255,255,0.18); letter-spacing: 0.08em;
+    }
+
+    /* ── LOADER ── */
+    body.loading { overflow: hidden; }
+
+    #loader {
+      position: fixed; inset: 0;
+      z-index: 99999;
+      pointer-events: all;
+      overflow: hidden;
+    }
+
+    /* Две панели — разъезжаются при выходе */
+    .loader-panel {
+      position: absolute; left: 0; right: 0;
+      background: var(--black);
+    }
+    .loader-panel.top    { top: 0; height: 50%; }
+    .loader-panel.bottom { bottom: 0; height: 50%; }
+    #loader.hide .loader-panel.top    { transform: translateY(-100%); transition: transform 1.1s 0.6s cubic-bezier(0.76,0,0.24,1); }
+    #loader.hide .loader-panel.bottom { transform: translateY(100%);  transition: transform 1.1s 0.6s cubic-bezier(0.76,0,0.24,1); }
+
+    /* Горизонтальная разделительная линия по центру */
+    .loader-line {
+      position: absolute; top: 50%; left: 0; right: 0;
+      height: 1px; background: rgba(245,245,243,0.08);
+      transform: scaleX(0); transform-origin: left;
+      animation: loaderLineIn 1s 0.2s cubic-bezier(0.76,0,0.24,1) forwards;
+      z-index: 2;
+    }
+    @keyframes loaderLineIn { to { transform: scaleX(1); } }
+
+    /* Прогресс поверх разделительной линии */
+    .loader-progress-line {
+      position: absolute; top: 50%; left: 0;
+      height: 1px; background: var(--white);
+      width: 0%;
+      z-index: 3;
+      transition: width 0.06s linear;
+    }
+
+    /* Центральный блок с именем и счётчиком */
+    .loader-center {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      z-index: 4; gap: 0;
+      pointer-events: none;
+      transition: opacity 0.5s ease, transform 0.7s cubic-bezier(0.76,0,0.24,1);
+    }
+    #loader.hide .loader-center {
+      opacity: 0;
+      transform: translateY(-18px);
+    }
+
+    /* Имя — побуквенный reveal */
+    .loader-title-wrap {
+      overflow: hidden;
+      line-height: 1.05;
+    }
+    .loader-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(44px, 9vw, 120px);
+      font-weight: 400;
+      letter-spacing: -0.01em;
+      color: var(--white);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0 0.18em;
+    }
+    /* Каждое слово — отдельный overflow:hidden контейнер */
+    .loader-word {
+      overflow: hidden;
+      display: inline-flex;
+    }
+    /* Каждая буква */
+    .loader-char {
+      display: inline-block;
+      transform: translateY(115%) rotate(4deg);
+      opacity: 0;
+      filter: blur(6px);
+      transition:
+        transform 0.75s cubic-bezier(0.16, 1, 0.3, 1),
+        opacity   0.6s  cubic-bezier(0.16, 1, 0.3, 1),
+        filter    0.7s  ease;
+      will-change: transform, opacity, filter;
+    }
+    .loader-char.italic {
+      font-style: italic;
+      color: rgba(245,245,243,0.4);
+    }
+    .loader-char.visible {
+      transform: translateY(0) rotate(0deg);
+      opacity: 1;
+      filter: blur(0px);
+    }
+
+    /* Подзаголовок — тоже побуквенно, но мельче */
+    .loader-subtitle-wrap {
+      overflow: hidden;
+      margin-top: 18px;
+      display: flex;
+      justify-content: center;
+    }
+    .loader-subtitle {
+      font-size: 0.65rem;
+      letter-spacing: 0.32em;
+      text-transform: uppercase;
+      color: rgba(245,245,243,0.25);
+      display: flex;
+      gap: 0;
+    }
+    .loader-sub-char {
+      display: inline-block;
+      transform: translateY(100%);
+      opacity: 0;
+      transition:
+        transform 0.55s cubic-bezier(0.16, 1, 0.3, 1),
+        opacity   0.5s  ease;
+    }
+    .loader-sub-char.visible {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    @keyframes loaderReveal { to { transform: translateY(0); } }
+
+    /* Счётчик — справа снизу, как в кино */
+    .loader-counter {
+      position: absolute;
+      right: 52px; bottom: 52px;
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(13px, 1.5vw, 18px);
+      letter-spacing: 0.06em;
+      color: rgba(245,245,243,0.22);
+      z-index: 5;
+      display: flex; align-items: baseline; gap: 4px;
+    }
+    .loader-counter .pct {
+      font-size: clamp(32px, 5vw, 56px);
+      color: rgba(245,245,243,0.55);
+      letter-spacing: -0.03em;
+      font-weight: 400;
+      line-height: 1;
+    }
+
+    /* Слева снизу — год / город */
+    .loader-meta {
+      position: absolute; left: 52px; bottom: 52px;
+      font-size: 0.62rem; letter-spacing: 0.18em; text-transform: uppercase;
+      color: rgba(245,245,243,0.18);
+      z-index: 5;
+      overflow: hidden;
+    }
+    .loader-meta span {
+      display: block;
+      transform: translateY(120%);
+      animation: loaderReveal 0.8s 0.5s cubic-bezier(0.76,0,0.24,1) forwards;
+    }
+
+    /* Слева вверху — маленький логотип */
+    .loader-logo {
+      position: absolute; left: 52px; top: 48px;
+      font-family: 'Playfair Display', serif;
+      font-size: 0.85rem; letter-spacing: 0.06em;
+      color: rgba(245,245,243,0.2);
+      z-index: 5;
+      overflow: hidden;
+      transition: opacity 0.4s ease;
+    }
+    .loader-logo span {
+      display: block;
+      transform: translateY(-120%);
+      animation: loaderRevealDown 0.8s 0.3s cubic-bezier(0.76,0,0.24,1) forwards;
+    }
+    #loader.hide .loader-logo { opacity: 0; }
+    @keyframes loaderRevealDown { to { transform: translateY(0); } }
+
+    /* Слева снизу — мета */
+    #loader.hide .loader-meta { opacity: 0; transition: opacity 0.4s ease; }
+
+    /* Счётчик при уходе */
+    #loader.hide .loader-counter { opacity: 0; transition: opacity 0.4s ease; }
+
+    /* Прогресс-линия при уходе */
+    #loader.hide .loader-progress-line { opacity: 0; transition: opacity 0.3s ease; }
+    #loader.hide .loader-line { opacity: 0; transition: opacity 0.3s ease; }
+
+    /* Уголки — рисуются линиями */
+    .loader-corner {
+      position: absolute; z-index: 5;
+      width: 0; height: 0;
+      border-color: rgba(245,245,243,0.14);
+      border-style: solid;
+      animation: loaderCorner 0.7s 0.15s ease forwards;
+    }
+    #loader.hide .loader-corner { opacity: 0; transition: opacity 0.3s ease; }
+    @keyframes loaderCorner { to { width: 22px; height: 22px; } }
+    .loader-corner.tl { top: 36px; left: 36px; border-width: 1px 0 0 1px; }
+    .loader-corner.tr { top: 36px; right: 36px; border-width: 1px 1px 0 0; }
+    .loader-corner.bl { bottom: 36px; left: 36px; border-width: 0 0 1px 1px; }
+    .loader-corner.br { bottom: 36px; right: 36px; border-width: 0 1px 1px 0; }
+
+    /* Вертикальная тонкая линия слева — как на плакатах */
+    .loader-vline {
+      position: absolute; left: 50%; top: 0; bottom: 0; width: 1px;
+      background: rgba(245,245,243,0.04);
+      z-index: 1;
+    }
+
+    /* ── PARALLAX ── */
+    /* Карточки работ — параллакс по вертикали */
+    .card img {
+      will-change: transform;
+    }
+    /* Hero фото — параллакс */
+    .hero-photo {
+      will-change: transform;
+    }
+    /* Hero desc и label — лёгкий параллакс */
+    .hero-label, .hero-desc {
+      will-change: transform;
+    }
+
+    /* KEYFRAMES */
+@keyframes fadeUp {
+      from { opacity: 0; transform: translateY(28px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes scaleX {
+      to { transform: scaleX(1); }
+    }
+    @keyframes marquee {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
+    }
+
+    /* RESPONSIVE — tablet */
+    @media (max-width: 900px) {
+      nav { padding: 22px 28px; }
+      .nav-links { gap: 24px; }
+      #hero { padding: 0 28px 70px; }
+      .hero-scroll-hint { right: 28px; }
+      .section { padding: 90px 28px; }
+      #works { padding: 90px 28px 60px; }
+      .card:nth-child(1) { grid-column: span 6; }
+      .card:nth-child(2) { grid-column: span 6; }
+      .card:nth-child(3) { grid-column: span 6; aspect-ratio: 3/4; }
+      .card:nth-child(4) { grid-column: span 6; aspect-ratio: 5/2; }
+      .card:nth-child(5) { grid-column: span 6; aspect-ratio: 3/4; }
+      #about { grid-template-columns: 1fr; gap: 48px; }
+      .about-right { padding-top: 0; }
+      .process-grid { grid-template-columns: repeat(2, 1fr); }
+      #tools { flex-direction: column; gap: 48px; }
+      .tools-heading { flex: none; }
+      footer { flex-direction: column; gap: 8px; text-align: center; }
+    }
+
+    /* RESPONSIVE — mobile */
+    @media (max-width: 600px) {
+      /* cursor off on touch */
+      .cursor, .cursor-ring { display: none; }
+      body, a, button, .card { cursor: auto !important; }
+
+      nav {
+        padding: 18px 20px;
+        flex-wrap: wrap; gap: 12px;
+      }
+      .nav-links {
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+      .nav-links a { font-size: 0.65rem; }
+
+      #hero {
+        padding: 0 20px 60px;
+        height: 100svh;
+      }
+      .hero-photo-wrap {
+        width: 100%;
+        height: 60%;
+        top: 0; right: 0;
+      }
+      .hero-photo-wrap::after {
+        background: linear-gradient(to top, var(--black) 0%, transparent 50%),
+                    linear-gradient(to right, transparent 0%, transparent 100%);
+      }
+      .hero-name { font-size: clamp(38px, 13vw, 64px); }
+      .hero-desc { font-size: 0.82rem; max-width: 100%; }
+      .hero-scroll-hint { display: none; }
+
+      .section { padding: 70px 20px; }
+      #works { padding: 70px 20px 50px; }
+
+      .works-head {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+        margin-bottom: 32px;
+      }
+      .works-title { font-size: clamp(26px, 7vw, 40px); }
+
+      .grid { gap: 10px; }
+      .card:nth-child(1) { grid-column: span 12; aspect-ratio: 1/1; }
+      .card:nth-child(2) { grid-column: span 12; aspect-ratio: 1/1; }
+      .card:nth-child(3) { grid-column: span 6; aspect-ratio: 3/4; }
+      .card:nth-child(4) { grid-column: span 6; aspect-ratio: 3/4; }
+      .card:nth-child(5) { grid-column: span 12; aspect-ratio: 3/4; }
+
+      /* всегда показывать подписи на мобиле */
+      .card-overlay { opacity: 1; }
+      .card-info { opacity: 1; transform: translateY(0); }
+
+      #about { grid-template-columns: 1fr; gap: 36px; }
+      .about-title { font-size: clamp(26px, 8vw, 40px); }
+      .about-right { padding-top: 0; }
+      .skill-badge { display: none; }
+
+      .process-grid { grid-template-columns: 1fr; }
+      .step { padding: 28px 20px; }
+      .step-num { font-size: 2.8rem; margin-bottom: 16px; }
+
+      #tools { flex-direction: column; gap: 32px; padding: 70px 20px; }
+      .tools-heading { flex: none; font-size: clamp(22px, 7vw, 36px); }
+      .tool-name { width: 120px; font-size: 0.8rem; }
+
+      #contact { padding: 70px 20px; min-height: 70vh; }
+      .contact-big { font-size: clamp(36px, 11vw, 72px); }
+
+      .socials { gap: 20px; flex-wrap: wrap; justify-content: center; }
+
+      footer {
+        padding: 24px 20px;
+        flex-direction: column; gap: 8px; text-align: center;
+      }
+    }
+
+    /* ── MODAL ── */
+    .modal-backdrop {
+      position: fixed; inset: 0;
+      z-index: 99995;
+      background: rgba(10, 10, 10, 0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex; align-items: center; justify-content: center;
+      padding: 40px;
+      overflow-y: auto;
+    }
+    .modal-backdrop.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    /* ── Базовый layout: картинка слева, текст справа (для обычных изображений) ── */
+    .modal {
+      position: relative;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: auto;
+      width: 100%;
+      max-width: 1100px;
+      max-height: 85vh;
+      background: #111;
+      transform: translateY(40px) scale(0.97);
+      transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+      overflow: hidden;
+    }
+    .modal-backdrop.open .modal {
+      transform: translateY(0) scale(1);
+    }
+
+    /* ── Широкий layout: картинка сверху, текст снизу ── */
+    .modal.modal--wide {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto auto;
+      max-width: 900px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    /* Изображение */
+    .modal-img-wrap {
+      position: relative;
+      overflow: hidden;
+    }
+    /* Обычный режим — изображение на всю высоту */
+    .modal:not(.modal--wide) .modal-img-wrap {
+      max-height: 85vh;
+    }
+    /* Широкий режим — изображение показывается полностью по ширине */
+    .modal--wide .modal-img-wrap {
+      width: 100%;
+    }
+    .modal-img-wrap img {
+      width: 100%;
+      display: block;
+      filter: grayscale(15%) contrast(1.06);
+      transition: transform 0.6s ease;
+    }
+    /* В обычном режиме — cover, чтобы заполнить панель */
+    .modal:not(.modal--wide) .modal-img-wrap img {
+      height: 100%;
+      object-fit: cover;
+    }
+    /* В широком режиме — показываем картинку полностью */
+    .modal--wide .modal-img-wrap img {
+      height: auto;
+      object-fit: contain;
+    }
+
+    /* Текст */
+    .modal-body {
+      padding: 48px 44px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      overflow-y: auto;
+    }
+    .modal--wide .modal-body {
+      padding: 40px 44px;
+      border-top: 1px solid rgba(245,245,243,0.07);
+    }
+    .modal-num {
+      font-size: 0.6rem; letter-spacing: 0.24em; text-transform: uppercase;
+      color: rgba(245,245,243,0.2);
+      margin-bottom: 20px;
+    }
+    .modal-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(26px, 3vw, 42px);
+      font-weight: 400; letter-spacing: -0.02em; line-height: 1.1;
+      margin-bottom: 12px;
+    }
+    .modal-cat {
+      font-size: 0.67rem; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--gray);
+      margin-bottom: 28px;
+      padding-bottom: 28px;
+      border-bottom: 1px solid rgba(245,245,243,0.07);
+    }
+    .modal--wide .modal-cat {
+      border-bottom: none;
+      padding-bottom: 0;
+      margin-bottom: 20px;
+    }
+    .modal-desc {
+      font-size: 0.88rem; line-height: 1.9; color: var(--gray);
+    }
+    .modal-tags {
+      display: flex; flex-wrap: wrap; gap: 10px;
+      margin-top: 32px;
+    }
+    .modal-tag {
+      font-size: 0.6rem; letter-spacing: 0.14em; text-transform: uppercase;
+      color: rgba(245,245,243,0.35);
+      border: 1px solid rgba(245,245,243,0.1);
+      padding: 7px 15px;
+      border-radius: 100px;
+    }
+
+    /* Кнопка закрыть */
+    .modal-close {
+      position: absolute;
+      top: 20px; right: 20px;
+      background: rgba(10,10,10,0.75);
+      border: 1px solid rgba(245,245,243,0.18);
+      color: var(--white);
+      border-radius: 100px;
+      padding: 9px 20px;
+      font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase;
+      display: flex; align-items: center; gap: 9px;
+      cursor: none !important;
+      z-index: 10;
+      transition: background 0.3s ease, border-color 0.3s ease;
+    }
+    .modal-close:hover {
+      background: rgba(245,245,243,0.1);
+      border-color: rgba(245,245,243,0.35);
+    }
+    .modal-close-x {
+      width: 12px; height: 12px;
+      position: relative; flex-shrink: 0;
+    }
+    .modal-close-x::before,
+    .modal-close-x::after {
+      content: ''; position: absolute; top: 50%; left: 0;
+      width: 12px; height: 1px; background: var(--white);
+    }
+    .modal-close-x::before { transform: rotate(45deg); }
+    .modal-close-x::after  { transform: rotate(-45deg); }
+
+    /* ── Адаптив ── */
+    @media (max-width: 860px) {
+      .modal-backdrop { padding: 20px; align-items: flex-start; }
+      .modal,
+      .modal.modal--wide {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto;
+        max-width: 100%;
+        max-height: none;
+        overflow-y: auto;
+      }
+      .modal:not(.modal--wide) .modal-img-wrap {
+        max-height: none;
+        height: 56vw;
+        min-height: 200px;
+      }
+      .modal:not(.modal--wide) .modal-img-wrap img {
+        height: 100%;
+        object-fit: cover;
+      }
+      .modal--wide .modal-img-wrap img {
+        height: auto;
+      }
+      .modal-body,
+      .modal--wide .modal-body { padding: 32px 28px; }
+    }
+
+    @media (max-width: 500px) {
+      .modal-backdrop { padding: 0; align-items: flex-end; }
+      .modal,
+      .modal.modal--wide {
+        border-radius: 0;
+        max-height: 94svh;
+        overflow-y: auto;
+      }
+      .modal:not(.modal--wide) .modal-img-wrap { height: 62vw; }
+      .modal-body,
+      .modal--wide .modal-body { padding: 24px 20px; }
+      .modal-close { top: 14px; right: 14px; padding: 8px 14px; }
+      .modal-title { font-size: clamp(22px, 6vw, 34px); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Loader -->
+<div id="loader">
+  <!-- Фоновые панели (разъезжаются при выходе) -->
+  <div class="loader-panel top"></div>
+  <div class="loader-panel bottom"></div>
+
+  <!-- Вертикальная ось -->
+  <div class="loader-vline"></div>
+
+  <!-- Центральная линия + прогресс -->
+  <div class="loader-line"></div>
+  <div class="loader-progress-line" id="loaderBar"></div>
+
+  <!-- Уголки -->
+  <div class="loader-corner tl"></div>
+  <div class="loader-corner tr"></div>
+  <div class="loader-corner bl"></div>
+  <div class="loader-corner br"></div>
+
+  <!-- Логотип вверху слева -->
+  <div class="loader-logo"><span>ИБ</span></div>
+
+  <!-- Центральный блок -->
+  <div class="loader-center">
+    <div class="loader-title-wrap">
+      <div class="loader-title" id="loaderTitle"></div>
+    </div>
+    <div class="loader-subtitle-wrap">
+      <div class="loader-subtitle" id="loaderSubtitle"></div>
+    </div>
+  </div>
+
+  <!-- Счётчик справа снизу -->
+  <div class="loader-counter">
+    <span class="pct" id="loaderNum">0</span><span>%</span>
+  </div>
+
+  <!-- Мета слева снизу -->
+  <div class="loader-meta"><span>Портфолио · 2026</span></div>
+</div>
+
+<!-- Cursor -->
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- Fullscreen Menu -->
+<div class="fullmenu" id="fullmenu">
+  <div class="fullmenu-line"></div>
+  <button class="fullmenu-close" id="fullmenuClose">
+    <span class="fullmenu-close-x"></span>
+    Закрыть
+  </button>
+  <ul class="fullmenu-nav">
+    <li class="fullmenu-item">
+      <a href="#works" class="fullmenu-link">
+        <span class="fullmenu-title">Работы</span>
+        <span class="fullmenu-num">01</span>
+      </a>
+    </li>
+    <li class="fullmenu-item">
+      <a href="#about" class="fullmenu-link">
+        <span class="fullmenu-title">Обо мне</span>
+        <span class="fullmenu-num">02</span>
+      </a>
+    </li>
+    <li class="fullmenu-item">
+      <a href="#process" class="fullmenu-link">
+        <span class="fullmenu-title">Процесс</span>
+        <span class="fullmenu-num">03</span>
+      </a>
+    </li>
+    <li class="fullmenu-item">
+      <a href="#contact" class="fullmenu-link">
+        <span class="fullmenu-title">Контакт</span>
+        <span class="fullmenu-num">04</span>
+      </a>
+    </li>
+  </ul>
+  <div class="fullmenu-footer">
+    <span class="fullmenu-footer-text">Иван Белихин · Портфолио 2026</span>
+    <span class="fullmenu-footer-text">Петрозаводск</span>
+  </div>
+</div>
+
+<!-- Nav -->
+<nav id="mainNav">
+  <a href="#" class="logo">Иван Белихин</a>
+  <ul class="nav-links">
+    <li><a href="#works">Работы</a></li>
+    <li><a href="#about">Обо мне</a></li>
+    <li><a href="#process">Процесс</a></li>
+    <li><a href="#contact">Контакт</a></li>
+  </ul>
+  <button class="burger" id="burger" aria-label="Меню">
+    <span class="burger-line"></span>
+    <span class="burger-line"></span>
+    <span class="burger-line"></span>
+  </button>
+</nav>
+
+<!-- Hero -->
+<section id="hero">
+  <div class="hero-bg">ИВАН</div>
+  <div class="hero-photo-wrap">
+    <img src="я.png" class="hero-photo" alt="Иван Белихин" />
+  </div>
+  <p class="hero-label">Графический дизайнер &nbsp;·&nbsp; Петрозаводск</p>
+  <h1 class="hero-name">Иван<br><em>Белихин</em></h1>
+  <p class="hero-desc">
+    Создаю визуальные истории, которые остаются в памяти.<br>
+    Брендинг, айдентика, цифровой дизайн.
+  </p>
+  <div class="hero-scroll-hint" id="scrollHint">
+    <div class="scroll-arrow">
+      <span></span><span></span><span></span>
+    </div>
+    <span class="scroll-line"></span>
+    Скролл вниз
+  </div>
+</section>
+
+<!-- Marquee -->
+<div class="marquee-wrap">
+  <div class="marquee-track">
+    <span class="marquee-item">Figma</span><span class="marquee-sep">·</span>
+    <span class="marquee-item">Photoshop</span><span class="marquee-sep">·</span>
+    <span class="marquee-item">ИИ-генерация</span><span class="marquee-sep">·</span>
+    <span class="marquee-item">Брендинг</span><span class="marquee-sep">·</span>
+    <span class="marquee-item">Айдентика</span><span class="marquee-sep">·</span>
+    <span class="marquee-item">UI Design</span><span class="marquee-sep">·</span>
+    <span class="marquee-item">Полиграфия</span><span class="marquee-sep">·</span>
+    <span class="marquee-item">SMM-дизайн</span><span class="marquee-sep">·</span>
+    <!-- duplicate for seamless loop -->
+    <span class="marquee-item">Figma</span><span class="marquee-sep">·</span>
+    <span class="marquee-item">Photoshop</span><span class="marquee-sep">·</span>
+    <span class="marquee-item">ИИ-генерация</span><span class="marquee-sep">·</span>
+    <span class="marquee-item">Брендинг</span><span class="marquee-sep">·</span>
+    <span class="marquee-item">Айдентика</span><span class="marquee-sep">·</span>
+    <span class="marquee-item">UI Design</span><span class="marquee-sep">·</span>
+    <span class="marquee-item">Полиграфия</span><span class="marquee-sep">·</span>
+    <span class="marquee-item">SMM-дизайн</span><span class="marquee-sep">·</span>
+  </div>
+</div>
+
+<!-- Works -->
+<section id="works" class="section">
+  <div class="works-head">
+    <div class="s-label" style="margin-bottom:0">Портфолио</div>
+    <div class="works-title">Избранные<br><em>работы</em></div>
+    <div class="works-count">05 проектов</div>
+  </div>
+  <div class="grid">
+    <div class="card"
+         data-title="Dope Parfume"
+         data-cat="Брендинг · Логотип"
+         data-num="01"
+         data-tags="Брендинг,Айдентика,Логотип"
+         data-desc="Разработка фирменного стиля для нишевого парфюмерного бренда. Концепция строится вокруг дерзости и чувственности — минималистичная графика в сочетании с тёмной цветовой палитрой."
+         data-img="dope parfume.png">
+      <img src="dope parfume.png" alt="Dope Parfume">
+      <div class="card-overlay"></div>
+      <div class="card-info">
+        <div class="card-name">Dope Parfume</div>
+        <div class="card-cat">Брендинг · Логотип</div>
+      </div>
+    </div>
+    <div class="card"
+         data-title="Проект «Лучший Адаптер ФТИ 2025»"
+         data-cat="Проект · Соцсети"
+         data-num="02"
+         data-tags="Проект,Соцсети,ИИ-генерация"
+         data-desc="Большой проект для университета. Ведение группы на протяжении месяца с ежедневными постами, организация дизайна для финала проекта. Использована нейросеть для улучшения визуала."
+         data-img="афиша.png">
+      <img src="афиша.png" alt="Афиша">
+      <div class="card-overlay"></div>
+      <div class="card-info">
+        <div class="card-name">Проект «Лучший Адаптер ФТИ 2025»</div>
+        <div class="card-cat">Проект · Соцсети</div>
+      </div>
+    </div>
+    <div class="card"
+         data-title="Карточка товара"
+         data-cat="E-commerce · Маркетплейс"
+         data-num="03"
+         data-tags="E-commerce,Маркетплейс,Wildberries,Ozon"
+         data-desc="Продающие карточки товара для маркетплейсов. Главная задача — выделиться среди конкурентов и за доли секунды донести ценность продукта. Использую инфографику, чёткую иерархию текста и продуманную композицию для максимальной конверсии."
+         data-img="карточка 2.png">
+      <img src="карточка 2.png" alt="Карточка товара">
+      <div class="card-overlay"></div>
+      <div class="card-info">
+        <div class="card-name">Карточка товара</div>
+        <div class="card-cat">E-commerce · Маркетплейс</div>
+      </div>
+    </div>
+    <div class="card"
+         data-title="День вечной молодости"
+         data-cat="Шапка · Соцсети"
+         data-num="04"
+         data-tags="Постер,Коллаж,Арт-дирекшн,ИИ-генерация"
+         data-desc="Кейс на обучающем курсе по медийке"
+         data-img="день вечной молодости.png">
+      <img src="день вечной молодости.png" alt="День вечной молодости">
+      <div class="card-overlay"></div>
+      <div class="card-info">
+        <div class="card-name">День вечной молодости</div>
+        <div class="card-cat">Шапка · Соцсети</div>
+      </div>
+    </div>
+    <div class="card"
+         data-title="Карточка продукта"
+         data-cat="Маркетплейс · E-commerce"
+         data-num="05"
+         data-tags="Визуал,E-commerce,Продукт,SMM"
+         data-desc="Визуальная подача продукта для интернет-магазина и социальных сетей. Акцент на чистоте кадра, правильном освещении и лаконичной подаче. Финальный результат адаптирован под несколько форматов: квадрат, вертикаль, баннер."
+         data-img="карточка товара.png">
+      <img src="карточка товара.png" alt="Карточка продукта">
+      <div class="card-overlay"></div>
+      <div class="card-info">
+        <div class="card-name">Карточка продукта</div>
+        <div class="card-cat">Маркетплейс · E-commerce</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- About -->
+<section id="about" class="section">
+  <div>
+    <div class="s-label">Обо мне</div>
+    <h2 class="about-title">Дизайн —<br>это язык<br><em>без слов</em></h2>
+    <p class="about-text">
+      Я графический дизайнер, создающий визуальные решения на стыке эстетики и функциональности. Работаю с брендами, 
+которым нужен сильный визуальный голос. Каждый проект — исследование, форма и история.
+    </p>
+    <p class="about-text">
+      Использую возможности искусственного интеллекта как инструмент для генерации идей и ускорения процесса, сохраняя
+авторский взгляд и точную доводку в Figma и Photoshop.
+    </p>
+  </div>
+  <div class="about-right">
+    <div class="skill-row" style="transition-delay:0s">
+      <span class="skill-name">Figma</span>
+      <span class="skill-badge">Основной инструмент</span>
+    </div>
+    <div class="skill-row" style="transition-delay:0.1s">
+      <span class="skill-name">Adobe Photoshop</span>
+      <span class="skill-badge">Ретушь · Коллаж</span>
+    </div>
+    <div class="skill-row" style="transition-delay:0.2s">
+      <span class="skill-name">ИИ-генерация</span>
+      <span class="skill-badge">NanoBanana · DALL·E</span>
+    </div>
+    <div class="skill-row" style="transition-delay:0.3s">
+      <span class="skill-name">Брендинг</span>
+      <span class="skill-badge">Айдентика · Логотип</span>
+    </div>
+    <div class="skill-row" style="transition-delay:0.4s">
+      <span class="skill-name">SMM-дизайн</span>
+      <span class="skill-badge">Контент · Шаблоны</span>
+    </div>
+    <div class="skill-row" style="transition-delay:0.5s">
+      <span class="skill-name">Полиграфия</span>
+      <span class="skill-badge">Плакат · Афиша</span>
+    </div>
+  </div>
+</section>
+
+<!-- Process -->
+<section id="process" class="section">
+  <div class="s-label">Как я работаю</div>
+  <div class="process-grid">
+    <div class="step" style="transition-delay:0s">
+      <div class="step-num">01</div>
+      <div class="step-title">Погружение</div>
+      <div class="step-text">Изучаю бренд, аудиторию и конкурентов. Задаю правильные вопросы, чтобы понять суть 
+задачи.</div>
+    </div>
+    <div class="step" style="transition-delay:0.1s">
+      <div class="step-num">02</div>
+      <div class="step-title">Концепция</div>
+      <div class="step-text">Генерирую идеи вручную и с помощью ИИ. Отбираю сильнейшее направление и выстраиваю визуальную логику.</div>
+    </div>
+    <div class="step" style="transition-delay:0.2s">
+      <div class="step-num">03</div>
+      <div class="step-title">Создание</div>
+      <div class="step-text">Воплощаю концепцию в Figma и Photoshop. Работаю с типографикой, цветом, формой — до 
+идеального результата.</div>
+    </div>
+    <div class="step" style="transition-delay:0.3s">
+      <div class="step-num">04</div>
+      <div class="step-title">Доставка</div>
+      <div class="step-text">Передаю файлы в нужных форматах. Сопровождаю после сдачи, если нужны правки или 
+масштабирование.</div>
+    </div>
+  </div>
+</section>
+
+<!-- Tools -->
+<section id="tools" class="section">
+  <div class="tools-heading">
+    Инструменты<br><em>в работе</em>
+  </div>
+  <div class="tools-list">
+    <div class="tool-row" style="transition-delay:0s">
+      <span class="tool-name">Figma</span>
+      <div class="tool-track"><div class="tool-fill" data-width="95%"></div></div>
+      <span class="tool-pct">95%</span>
+    </div>
+    <div class="tool-row" style="transition-delay:0.1s">
+      <span class="tool-name">Photoshop</span>
+      <div class="tool-track"><div class="tool-fill" data-width="80%"></div></div>
+      <span class="tool-pct">80%</span>
+    </div>
+    <div class="tool-row" style="transition-delay:0.2s">
+      <span class="tool-name">Nano Banana</span>
+      <div class="tool-track"><div class="tool-fill" data-width="30%"></div></div>
+      <span class="tool-pct">30%</span>
+    </div>
+    <div class="tool-row" style="transition-delay:0.4s">
+      <span class="tool-name">Illustrator</span>
+      <div class="tool-track"><div class="tool-fill" data-width="30%"></div></div>
+      <span class="tool-pct">30%</span>
+    </div>
+  </div>
+</section>
+
+<!-- Contact -->
+<section id="contact" class="section">
+  <p class="contact-over">Готов к новому проекту</p>
+  <h2 class="contact-big">Давайте<br><em>создадим</em><br>вместе</h2>
+  <a href="mailto:ivanbelikhin@icloud.com" class="contact-link">ivanbelikhin@icloud.com</a>
+  <div class="socials">
+    <a href="https://t.me/Vanyochekz">Telegram</a>
+    <a href="https://www.instagram.com/i.belikhin/">Instagram</a>
+    <a href="https://vk.com/i.belikhin07">VK</a>
+  </div>
+</section>
+
+<!-- Modal -->
+<div class="modal-backdrop" id="modalBackdrop" role="dialog" aria-modal="true">
+  <div class="modal" id="modal">
+    <button class="modal-close" id="modalClose" aria-label="Закрыть">
+      <span class="modal-close-x"></span>
+      Закрыть
+    </button>
+    <div class="modal-img-wrap">
+      <img id="modalImg" src="" alt="" />
+    </div>
+    <div class="modal-body">
+      <div class="modal-num" id="modalNum"></div>
+      <div class="modal-title" id="modalTitle"></div>
+      <div class="modal-cat" id="modalCat"></div>
+      <div class="modal-desc" id="modalDesc"></div>
+      <div class="modal-tags" id="modalTags"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Footer -->
+<footer>
+  <span>© 2026 Иван Белихин</span>
+  <span>Графический дизайнер · Петрозаводск</span>
+</footer>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+  // ── Loader ──
+  (function () {
+    const loader     = document.getElementById('loader');
+    const numEl      = document.getElementById('loaderNum');
+    const bar        = document.getElementById('loaderBar');
+    const titleEl    = document.getElementById('loaderTitle');
+    const subtitleEl = document.getElementById('loaderSubtitle');
+
+    document.body.classList.add('loading');
+
+    // ── Побуквенная сборка имени ──
+    // Слова: «Иван» (прямое) и «Белихин» (курсив)
+    const words = [
+      { text: 'Иван',    italic: false },
+      { text: 'Белихин', italic: true  },
+    ];
+
+    const allChars = []; // все span-буквы для анимации
+
+    words.forEach((word, wi) => {
+      const wordWrap = document.createElement('span');
+      wordWrap.className = 'loader-word';
+
+      [...word.text].forEach((ch, ci) => {
+        const span = document.createElement('span');
+        span.className = 'loader-char' + (word.italic ? ' italic' : '');
+        span.textContent = ch;
+        wordWrap.appendChild(span);
+        allChars.push({ el: span, delay: wi * 60 + ci * 55 }); // каскадная задержка
+      });
+
+      titleEl.appendChild(wordWrap);
+    });
+
+    // ── Побуквенная сборка подзаголовка ──
+    const subtitle = 'Графический дизайнер · Петрозаводск';
+    const subChars = [];
+
+    [...subtitle].forEach((ch, i) => {
+      const span = document.createElement('span');
+      span.className = 'loader-sub-char';
+      span.textContent = ch === ' ' ? '\u00A0' : ch;
+      subtitleEl.appendChild(span);
+      subChars.push({ el: span, delay: i * 28 });
+    });
+
+    // ── Запускаем появление букв ──
+    function revealChars() {
+      // Имя — с задержкой 300мс после старта
+      allChars.forEach(({ el, delay }) => {
+        setTimeout(() => el.classList.add('visible'), 300 + delay);
+      });
+
+      // Подзаголовок — после того как имя почти появилось
+      const titleDuration = 300 + allChars[allChars.length - 1].delay + 200;
+      subChars.forEach(({ el, delay }) => {
+        setTimeout(() => el.classList.add('visible'), titleDuration + delay);
+      });
+    }
+
+    revealChars();
+
+    // ── Прогресс-счётчик ──
+    let current = 0;
+
+    function getStep(n) {
+      if (n < 30) return Math.random() * 5 + 3;
+      if (n < 65) return Math.random() * 2.5 + 1;
+      if (n < 85) return Math.random() * 1 + 0.4;
+      return Math.random() * 4 + 2;
+    }
+
+    function tick() {
+      if (current >= 100) {
+        numEl.textContent = '100';
+        bar.style.width = '100%';
+        // Пауза — пользователь видит 100% и завершённое имя
+        setTimeout(hideLoader, 1000);
+        return;
+      }
+      current = Math.min(current + getStep(current), 100);
+      const n = Math.floor(current);
+      numEl.textContent = n;
+      bar.style.width = n + '%';
+
+      const delay = current < 65 ? 30 : current < 85 ? 55 : 22;
+      setTimeout(tick, delay);
+    }
+
+    function hideLoader() {
+      loader.classList.add('hide');
+      document.body.classList.remove('loading');
+      // Запускаем scroll hint после того, как панели разъехались (~1.7с)
+      setTimeout(() => {
+        const hint = document.getElementById('scrollHint');
+        if (hint) hint.classList.add('visible');
+      }, 1700);
+      setTimeout(() => loader.remove(), 2100);
+    }
+
+    // Старт счётчика — с небольшой задержкой
+    setTimeout(tick, 350);
+  })();
+
+  // ── Cursor ──
+  const cursor = document.getElementById('cursor');
+  const ring   = document.getElementById('cursorRing');
+  let mx = 0, my = 0;
+  let rx = 0, ry = 0;
+
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX;
+    my = e.clientY;
+    // Точка идёт сразу — без задержки
+    cursor.style.left = mx + 'px';
+    cursor.style.top  = my + 'px';
+  });
+
+  // Кольцо плавно догоняет через rAF
+  function animateRing() {
+    rx += (mx - rx) * 0.12;
+    ry += (my - ry) * 0.12;
+    ring.style.left = rx + 'px';
+    ring.style.top  = ry + 'px';
+    requestAnimationFrame(animateRing);
+  }
+  animateRing();
+
+  document.querySelectorAll('a, .card, button').forEach(el => {
+    el.addEventListener('mouseenter', () => { cursor.classList.add('grow'); ring.classList.add('grow'); });
+    el.addEventListener('mouseleave', () => { cursor.classList.remove('grow'); ring.classList.remove('grow'); });
+  });
+
+  // Снимаем grow при клике, чтобы курсор не застревал в состоянии grow
+  document.addEventListener('click', () => {
+    cursor.classList.remove('grow');
+    ring.classList.remove('grow');
+  });
+
+  // ── Parallax (нативный скролл) ──
+  const heroBg    = document.querySelector('.hero-bg');
+  const heroPhoto = document.querySelector('.hero-photo');
+  const heroName  = document.querySelector('.hero-name');
+  const heroLabel = document.querySelector('.hero-label');
+  const heroDesc  = document.querySelector('.hero-desc');
+  const cardImgs  = document.querySelectorAll('.card img');
+  const cardSpeeds = [0.07, -0.05, 0.09, -0.04, 0.06];
+
+  let cardOffsets = [];
+  function calcCardOffsets() {
+    cardOffsets = Array.from(cardImgs).map(img => {
+      const card = img.closest('.card');
+      return card.getBoundingClientRect().top + window.scrollY;
+    });
+  }
+  window.addEventListener('load', calcCardOffsets);
+  window.addEventListener('resize', calcCardOffsets);
+
+  let ticking = false;
+  window.addEventListener('scroll', () => {
+    if (!ticking) {
+      requestAnimationFrame(onScroll);
+      ticking = true;
+    }
+  });
+
+  function onScroll() {
+    const y  = window.scrollY;
+    const vh = window.innerHeight;
+
+    if (heroBg) heroBg.style.transform =
+      `translate3d(-50%, calc(-50% + ${y * 0.22}px), 0)`;
+
+    if (heroPhoto && y < vh * 1.5)
+      heroPhoto.style.transform = `translate3d(0, ${y * 0.15}px, 0) scale(1.05)`;
+
+    if (heroName  && y < vh) heroName.style.transform  = `translate3d(0, ${y * 0.04}px, 0)`;
+    if (heroLabel && y < vh) heroLabel.style.transform = `translate3d(0, ${y * 0.07}px, 0)`;
+    if (heroDesc  && y < vh) heroDesc.style.transform  = `translate3d(0, ${y * 0.05}px, 0)`;
+
+    cardImgs.forEach((img, i) => {
+      const offsetTop = cardOffsets[i] || 0;
+      const dist = offsetTop - y - vh / 2;
+      if (Math.abs(dist) > vh * 1.5) return;
+      img.style.transform = `translate3d(0, ${dist * (cardSpeeds[i] || 0.06)}px, 0) scale(1.08)`;
+    });
+
+    ticking = false;
+  }
+
+  // ── Burger Menu ──
+  const burger       = document.getElementById('burger');
+  const fullmenu     = document.getElementById('fullmenu');
+  const mainNav      = document.getElementById('mainNav');
+  const fullmenuClose = document.getElementById('fullmenuClose');
+  const menuLinks    = fullmenu.querySelectorAll('.fullmenu-link');
+
+  function openMenu() {
+    burger.classList.add('open');
+    fullmenu.classList.add('open');
+    mainNav.classList.add('menu-open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeMenu() {
+    burger.classList.remove('open');
+    fullmenu.classList.remove('open');
+    mainNav.classList.remove('menu-open');
+    document.body.style.overflow = '';
+  }
+
+  burger.addEventListener('click', () => {
+    burger.classList.contains('open') ? closeMenu() : openMenu();
+  });
+
+  // Кнопка закрыть внутри меню
+  fullmenuClose.addEventListener('click', closeMenu);
+
+  // Закрытие по клику на пункт меню
+  menuLinks.forEach(link => {
+    link.addEventListener('click', () => {
+      closeMenu();
+    });
+  });
+
+  // Закрытие по клику на фон меню (вне пунктов)
+  fullmenu.addEventListener('click', e => {
+    if (e.target === fullmenu) closeMenu();
+  });
+
+  // Закрытие по Escape
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeMenu();
+  });
+
+  // ── Intersection Observer ──
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        const fill = entry.target.querySelector('.tool-fill');
+        if (fill) fill.style.width = fill.getAttribute('data-width');
+      }
+    });
+  }, { threshold: 0.15 });
+
+  document.querySelectorAll('.card, .skill-row, .step, .contact-over, .contact-big, .contact-link, .socials, .tool-row').forEach(el => {
+    observer.observe(el);
+  });
+
+  // ── Modal ──
+  const modalBackdrop = document.getElementById('modalBackdrop');
+  const modalClose    = document.getElementById('modalClose');
+  const modalImg      = document.getElementById('modalImg');
+  const modalNum      = document.getElementById('modalNum');
+  const modalTitle    = document.getElementById('modalTitle');
+  const modalCat      = document.getElementById('modalCat');
+  const modalDesc     = document.getElementById('modalDesc');
+  const modalTags     = document.getElementById('modalTags');
+
+  function openModal(card) {
+    const img   = card.getAttribute('data-img');
+    const title = card.getAttribute('data-title');
+    const cat   = card.getAttribute('data-cat');
+    const num   = card.getAttribute('data-num');
+    const desc  = card.getAttribute('data-desc');
+    const tags  = (card.getAttribute('data-tags') || '').split(',').filter(Boolean);
+
+    modalImg.src = img;
+    modalImg.alt = title;
+    modalNum.textContent = num + ' / 05';
+    modalTitle.textContent = title;
+    modalCat.textContent = cat;
+    modalDesc.textContent = desc;
+    modalTags.innerHTML = tags.map(t => `<span class="modal-tag">${t.trim()}</span>`).join('');
+
+    // Определяем широкое ли изображение после загрузки
+    const modalEl = document.getElementById('modal');
+    modalEl.classList.remove('modal--wide');
+    modalImg.onload = function() {
+      if (this.naturalWidth > this.naturalHeight * 1.3) {
+        modalEl.classList.add('modal--wide');
+      } else {
+        modalEl.classList.remove('modal--wide');
+      }
+    };
+    // Если уже закешировано
+    if (modalImg.complete && modalImg.naturalWidth > 0) {
+      if (modalImg.naturalWidth > modalImg.naturalHeight * 1.3) {
+        modalEl.classList.add('modal--wide');
+      }
+    }
+
+    modalBackdrop.classList.add('open');
+    document.body.style.overflow = 'hidden';
+
+    // Grow cursor on modal close button
+    modalClose.addEventListener('mouseenter', () => { cursor.classList.add('grow'); ring.classList.add('grow'); });
+    modalClose.addEventListener('mouseleave', () => { cursor.classList.remove('grow'); ring.classList.remove('grow'); });
+  }
+
+  function closeModal() {
+    modalBackdrop.classList.remove('open');
+    document.body.style.overflow = '';
+    setTimeout(() => { modalImg.src = ''; }, 450);
+  }
+
+  document.querySelectorAll('.card').forEach(card => {
+    card.addEventListener('click', () => openModal(card));
+  });
+
+  modalClose.addEventListener('click', closeModal);
+
+  modalBackdrop.addEventListener('click', e => {
+    if (e.target === modalBackdrop) closeModal();
+  });
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      closeModal();
+      closeMenu();
+    }
+  });
+
+</script>
+</body>
+</html>
